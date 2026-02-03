@@ -2,17 +2,8 @@ FROM pentoolinux/pentoo-core
 
 # Setup repos
 WORKDIR /var/db/repos/
-
-
-# setup gentoo repo by timestamp of currrent gentoo build
-# Keep visibility checks locked to their source time for comparisons
-# (We are not testing upstream packages/updates here)
-RUN TS="$(cat /var/db/repos/gentoo/metadata/timestamp.chk)" \
- && TS_GIT="${TS/T/ }" \
- && TS_GIT="${TS_GIT/Z/ +0000}" \
- && git clone https://github.com/gentoo/gentoo.git \
- && git checkout "$(git rev-list -1 --before="$TS_GIT" HEAD)" \
-
+# setup gentoo repo
+RUN git clone https://github.com/gentoo/gentoo.git --depth 1
 # setup pentoo repo
 #RUN git clone https://github.com/pentoo/pentoo-overlay.git pentoo --depth 1
 # Use the github checkout for pentoo, that's what we are testing
@@ -28,4 +19,4 @@ WORKDIR /home
 RUN sed -i 's# pentoo-minimal##' /etc/portage/make.conf
 
 #test install pentoo/pentoo
-RUN time FEATURES="-ipc-sandbox -network-sandbox -pid-sandbox" emerge --getbinpkg=y --buildpkg=n --jobs=$(nproc) --load-average=$(nproc) --deep --update --newuse pentoo/pentoo --verbose --pretend
+RUN time FEATURES="-ipc-sandbox -network-sandbox -pid-sandbox" emerge --getbinpkg=n --buildpkg=n --jobs=$(nproc) --load-average=$(nproc) --deep --update --newuse pentoo/pentoo --verbose --pretend
